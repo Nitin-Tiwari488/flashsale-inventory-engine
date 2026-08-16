@@ -1,0 +1,14 @@
+package com.flashsale.service;
+
+import com.flashsale.entity.Inventory;
+
+public interface InventoryService {
+
+    Inventory createInventory(Long productId, Integer quantity);
+
+    Inventory getInventory(Long productId);
+
+    Inventory addStock(Long productId, Integer quantity);
+
+    Inventory reserveStock(Long productId, Integer quantity);
+}
