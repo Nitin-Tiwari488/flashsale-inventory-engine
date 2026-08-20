@@ -11,4 +11,6 @@ public interface InventoryService {
     Inventory addStock(Long productId, Integer quantity);
 
     Inventory reserveStock(Long productId, Integer quantity);
+
+    Inventory reserveStockPessimistic(Long productId, Integer quantity);
 }

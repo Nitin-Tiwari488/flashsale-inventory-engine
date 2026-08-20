@@ -105,3 +105,52 @@ Therefore, stale transactions cannot overwrite a newer inventory state.
 Optimistic locking prevented inconsistent inventory updates and maintained the inventory invariant:
 
 available stock + reserved stock = initial stock.
+
+================================
+## Experiment 2 — Pessimistic Locking
+
+### Setup
+
+- Initial inventory: 10
+- Concurrent requests: 50
+- Quantity per request: 1
+- Locking strategy: JPA PESSIMISTIC_WRITE
+- Artificial delay: 100 ms
+
+### Result
+
+- Successful reservations: 10
+- Failed reservations: 40
+- Final available stock: 0
+- Final reserved stock: 10
+- Inventory invariant: 10
+
+### Observation
+
+Pessimistic locking acquires a database row lock before modifying
+the inventory.
+
+Concurrent transactions attempting to modify the same inventory
+row must wait for the lock to be released.
+
+As a result, reservations were serialized and exactly the available
+10 units were successfully reserved.
+
+### Comparison
+
+Optimistic locking:
+- 5 successful reservations
+- 45 failed due to concurrent version conflicts
+
+Pessimistic locking:
+- 10 successful reservations
+- 40 failed after the available inventory was exhausted
+
+### Trade-off
+
+Optimistic locking avoids blocking but may require retries when
+contention is high.
+
+Pessimistic locking provides stronger serialization but can cause
+transactions to wait for database locks and may reduce throughput
+under heavy contention.

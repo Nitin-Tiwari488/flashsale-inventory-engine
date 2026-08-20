@@ -63,11 +63,31 @@ public class InventoryServiceImpl implements InventoryService {
 
         Inventory inventory = getInventory(productId);
 
-        try {
-            Thread.sleep(100);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+
+        if (inventory.getAvailableQuantity() < quantity) {
+            throw new InsufficientStockException("Insufficient stock");
         }
+
+        inventory.setAvailableQuantity(
+                inventory.getAvailableQuantity() - quantity
+        );
+
+        inventory.setReservedQuantity(
+                inventory.getReservedQuantity() + quantity
+        );
+
+        return inventoryRepository.save(inventory);
+    }
+    @Transactional
+    @Override
+    public Inventory reserveStockPessimistic(Long productId, Integer quantity) {
+
+        Inventory inventory = inventoryRepository
+                .findByProductIdForUpdate(productId)
+                .orElseThrow(() ->
+                        new RuntimeException("Inventory not found"));
+
+
 
         if (inventory.getAvailableQuantity() < quantity) {
             throw new InsufficientStockException("Insufficient stock");
