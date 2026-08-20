@@ -63,5 +63,45 @@ We will record:
 - Locking/contention behavior
 
 ## Final Result
-
+ ============================================================
 To be filled after experiments.
+# Concurrency Experiments
+
+## Experiment 1 — Optimistic Locking
+
+### Setup
+
+- Initial inventory: 10
+- Concurrent requests: 50
+- Quantity per request: 1
+- Locking strategy: JPA Optimistic Locking
+- Artificial delay: 100 ms
+
+### Result
+
+- Successful reservations: 5
+- Failed reservations: 45
+- Final available stock: 5
+- Final reserved stock: 5
+- Inventory invariant: 10
+
+### Observation
+
+Multiple requests attempted to modify the same inventory row concurrently.
+
+JPA optimistic locking uses the inventory version column to ensure that an update only succeeds when the entity version is still current.
+
+The database update contains:
+
+UPDATE inventory
+SET ..., version = ?
+WHERE id = ?
+AND version = ?
+
+Therefore, stale transactions cannot overwrite a newer inventory state.
+
+### Conclusion
+
+Optimistic locking prevented inconsistent inventory updates and maintained the inventory invariant:
+
+available stock + reserved stock = initial stock.
