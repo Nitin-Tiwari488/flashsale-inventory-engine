@@ -21,7 +21,7 @@ Request
 → Increase reserved quantity
 → Save
 
-This implementation has not yet been made concurrency-safe.
+
 
 ## Experiment
 
@@ -63,8 +63,18 @@ We will record:
 - Locking/contention behavior
 
 ## Final Result
- ============================================================
-To be filled after experiments.
+ ============================================================ 
+filled after experiment haad done.
+
+The concurrency experiments demonstrate that the implemented
+locking and Redis strategies maintain inventory consistency under
+concurrent requests.
+
+No overselling was observed in the tested scenarios.
+
+The Redis and pessimistic locking approaches successfully allowed
+10 reservations from an initial stock of 10 under 50 concurrent
+requests.
 # Concurrency Experiments
 
 ## Experiment 1 — Optimistic Locking
@@ -154,3 +164,57 @@ contention is high.
 Pessimistic locking provides stronger serialization but can cause
 transactions to wait for database locks and may reduce throughput
 under heavy contention.
+
+
+## Experiment 3 — Redis Atomic Reservation
+
+### Setup
+
+* Initial Redis stock: 10
+* Concurrent requests: 50
+* Quantity per request: 1
+* Reservation mechanism: Redis Lua script
+
+### Result
+
+* Successful reservations: 10
+* Failed reservations: 40
+* Remaining Redis stock: 0
+* Inventory invariant: 10
+* Overselling: 0
+
+### Observation
+
+The Redis reservation operation successfully handled 50 concurrent
+requests while only 10 units were available.
+
+The reservation logic uses a Redis Lua script to perform the stock
+check and decrement as one atomic operation.
+
+The operation effectively performs:
+
+GET stock
+→ Check stock >= requested quantity
+→ DECRBY stock quantity
+
+Because these operations execute atomically inside the Lua script,
+two concurrent requests cannot both pass the stock check for the
+same unit.
+
+### Conclusion
+
+Redis atomic reservation prevented overselling under concurrent
+access.
+
+Exactly 10 of the 50 requests successfully reserved inventory,
+while the remaining 40 requests failed because the available stock
+was exhausted.
+
+The final invariant was maintained:
+
+available stock + successful reservations = initial stock
+
+10 = 0 + 10
+
+This demonstrates that Redis can provide a fast atomic reservation
+layer suitable for high-concurrency flash-sale workloads.

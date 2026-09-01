@@ -13,4 +13,10 @@ public interface InventoryService {
     Inventory reserveStock(Long productId, Integer quantity);
 
     Inventory reserveStockPessimistic(Long productId, Integer quantity);
+
+    Inventory reserveStockRedis(Long productId, Integer quantity);
+
+    Inventory releaseStock(Long productId, Integer quantity);
+
+    Inventory resetStock(Long productId, Integer quantity);
 }
